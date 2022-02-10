@@ -73,4 +73,5 @@ jobs:
             docker tag ${{ env.APP }} ${{ env.APP }}:pr-$(basename ${{ github.event.pull_request._links.html.href }})
           fi
           # This is where we would push the image
+          docker images ${{ env.APP }}
 
