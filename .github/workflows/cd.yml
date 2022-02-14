@@ -34,6 +34,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: get-image-tag
 
+    outputs:
+      comment-id: ${{ steps.comment.outputs.comment-id }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -74,4 +77,65 @@ jobs:
           fi
           # This is where we would push the image
           docker images ${{ env.APP }}
+
+      - name: Comment on pull request
+        if: github.event_name != 'push'
+        uses: peter-evans/create-or-update-comment@v1
+        id: comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          token: ${{ secrets.GITOPS_TOKEN }}
+          body: |
+            🐳 Image built and uploaded to AWS ECR 🚀
+            ```
+            ${{ env.ECR_REGISTRY }}/${{ env.APP }}:${{ needs.get-image-tag.outputs.tag }}
+            ```
+
+  deployment:
+    runs-on: ubuntu-latest
+    needs: [get-image-tag, build-image]
+
+    steps:
+      - name: Preview deployment
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.GITOPS_TOKEN }}
+          repository: lneves75/k8s-manifests
+          event-type: ${{ env.APP }}-preview
+          client-payload: '{
+            "image-tag": "${{ needs.get-image-tag.outputs.tag }}",
+            "pr-url": "${{ github.event.pull_request._links.html.href }}",
+            "action": "${{ github.event.action }}"
+            "comment-id": "${{ needs.build-image.outputs.comment-id }}"
+            }'
+
+      - name: Staging deployment
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.GITOPS_TOKEN }}
+          repository: lneves75/k8s-manifests
+          event-type: ${{ env.APP }}-staging
+          client-payload: '{
+            "image-tag": "${{ needs.get-image-tag.outputs.tag }}",
+            "pr-url": "0",
+            "action": "deploy"
+            "comment-id": ""
+            }'
+
+
+      - name: Production deployment
+        if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/production') }}
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.GITOPS_TOKEN }}
+          repository: lneves75/k8s-manifests
+          event-type: ${{ env.APP }}-production
+          client-payload: '{
+            "image-tag": "${{ needs.get-image-tag.outputs.tag }}",
+            "pr-url": "0",
+            "action": "deploy"
+            "comment-id": ""
+            }'
 
