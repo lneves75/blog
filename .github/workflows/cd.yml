@@ -71,9 +71,10 @@ jobs:
           docker tag ${{ env.APP }} ${{ env.APP }}:${{ needs.get-image-tag.outputs.tag }}
 
           if [ "${{ github.event_name }}" == "push" ]; then
+            docker tag ${{ env.APP }} ${{ env.APP }}:staging
             docker tag ${{ env.APP }} ${{ env.APP }}:staging-${{ needs.get-image-tag.outputs.tag }}
           else
-            docker tag ${{ env.APP }} ${{ env.APP }}:pr-$(basename ${{ github.event.pull_request._links.html.href }})
+            docker tag ${{ env.APP }} ${{ env.APP }}:preview-$(basename ${{ github.event.pull_request._links.html.href }})
           fi
           # This is where we would push the image
           docker images ${{ env.APP }}
