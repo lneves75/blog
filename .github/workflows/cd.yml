@@ -109,6 +109,7 @@ jobs:
             "pr-url": "${{ github.event.pull_request._links.html.href }}",
             "action": "${{ github.event.action }}"
             "comment-id": "${{ needs.build-image.outputs.comment-id }}"
+            "chart-version": "1.0.0"
             }'
 
       - name: Staging deployment
@@ -123,6 +124,7 @@ jobs:
             "pr-url": "0",
             "action": "deploy"
             "comment-id": ""
+            "chart-version": "1.0.0"
             }'
 
 
@@ -138,5 +140,6 @@ jobs:
             "pr-url": "0",
             "action": "deploy"
             "comment-id": ""
+            "chart-version": "1.0.0"
             }'
 
