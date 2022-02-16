@@ -111,7 +111,7 @@ jobs:
             "pr-url": "${{ github.event.pull_request._links.html.href }}",
             "action": "${{ github.event.action }}",
             "comment-id": "${{ needs.build-image.outputs.comment-id }}",
-            "chart-version": "1.0.0"
+            "chart-version": "1.1.0"
             }'
 
       - name: Staging deployment
