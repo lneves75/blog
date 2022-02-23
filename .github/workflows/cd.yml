@@ -11,6 +11,7 @@ on:
 
 env:
   APP: blog
+  ECR_REGISTRY: "luisneves"
 
 jobs:
 
@@ -39,15 +40,18 @@ jobs:
 
     steps:
       - name: Checkout
+        if: github.event.action != 'closed'
         uses: actions/checkout@v2
         with:
           ref: ${{ needs.get-image-tag.outputs.tag }}
 
       - name: Read .ruby-version
+        if: github.event.action != 'closed'
         id: ruby_version
         run: echo "##[set-output name=RUBY_VERSION;]$(cat .ruby-version)"
 
       - name: Cache gems
+        if: github.event.action != 'closed'
         uses: actions/cache@v2
         with:
           path: vendor
@@ -55,18 +59,22 @@ jobs:
           restore-keys: ${{ runner.os }}-gems-image-
 
       - name: Cache Docker layers
+        if: github.event.action != 'closed'
         uses: actions/cache@v2
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-${{ env.APP }}
 
       - name: Setup Docker Buildx
+        if: github.event.action != 'closed'
         run: docker buildx create --driver docker-container --use
 
       - name: Build image for release
+        if: github.event.action != 'closed'
         run: make build-with-cache
 
       - name: Tag image
+        if: github.event.action != 'closed'
         run: |
           docker tag ${{ env.APP }} ${{ env.APP }}:${{ needs.get-image-tag.outputs.tag }}
 
@@ -80,7 +88,7 @@ jobs:
           docker images ${{ env.APP }}
 
       - name: Comment on pull request
-        if: github.event_name != 'push'
+        if: github.event.action != 'closed'
         uses: peter-evans/create-or-update-comment@v1
         id: comment
         with:
@@ -91,8 +99,6 @@ jobs:
             ```
             ${{ env.ECR_REGISTRY }}/${{ env.APP }}:${{ needs.get-image-tag.outputs.tag }}
             ```
-        env:
-          ECR_REGISTRY: "luisneves"
 
   deployment:
     runs-on: ubuntu-latest
