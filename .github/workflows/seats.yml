@@ -13,9 +13,9 @@ jobs:
     steps:
       - name: Get available seats
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITOPS_TOKEN: ${{ secrets.GITOPS_TOKEN }}
         run: |
-          curl -v -o data.json -H "authorization: token ${GITHUB_TOKEN}" https://api.github.com/orgs/onrunning
+          curl -v -o data.json -H "authorization: token ${GITOPS_TOKEN}" https://api.github.com/orgs/onrunning
           cat data.json
           jq -r '.plan' data.json
           seats=$(jq -r '.plan.seats' data.json)
