@@ -24,7 +24,7 @@ jobs:
           echo ${{ steps.get-seats.outputs.data }} > data.json
           cat data.json
 
-      - name: Parse it
+      - name: Check it
         id: values
         run: |
           jq -r '.plan' data.json
