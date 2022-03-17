@@ -12,21 +12,11 @@ jobs:
 
     steps:
       - name: Get available seats
-        uses: octokit/request-action@v2.x
-        id: get-seats
-        with:
-          route: GET /orgs/onrunning
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Spit it out
         run: |
-          echo "${{ steps.get-seats.outputs.data }}" > data.json
+          curl -s -o data.json -H "authorization: token ${GITHUB_TOKEN}" https://api.github.com/orgs/onrunning
           cat data.json
-
-      - name: Check it
-        id: values
-        run: |
           jq -r '.plan' data.json
           seats=$(jq -r '.plan.seats' data.json)
           filled_seats=$(jq -r '.plan.filled_seats' data.json)
