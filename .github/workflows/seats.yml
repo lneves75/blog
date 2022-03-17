@@ -1,0 +1,37 @@
+name: Check Github seats
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+
+  check-available-seats:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get available seats
+        uses: octokit/request-action@v2.x
+        id: get-seats
+        with:
+          route: GET /orgs/onrunning
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Spit it out
+        run: |
+          echo ${{ steps.get-seats.outputs.data }} > data.json
+          cat data.json
+
+      - name: Parse it
+        id: values
+        run: |
+          jq -r '.plan' data.json
+          seats=$(jq -r '.plan.seats' data.json)
+          filled_seats=$(jq -r '.plan.filled_seats' data.json)
+          if [ ${seats} -gt ${filled_seats} ]; then
+            echo "::error title=ERROR::There aren't enough seats available"
+            exit 1
+          fi
+
