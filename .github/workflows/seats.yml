@@ -21,7 +21,7 @@ jobs:
 
       - name: Spit it out
         run: |
-          echo ${{ steps.get-seats.outputs.data }} > data.json
+          echo "${{ steps.get-seats.outputs.data }}" > data.json
           cat data.json
 
       - name: Check it
